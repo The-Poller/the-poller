@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/the-poller/static/css/main.0eca8728.css",
+    "main.js": "/the-poller/static/js/main.7b760925.js",
+    "static/js/787.01b6395b.chunk.js": "/the-poller/static/js/787.01b6395b.chunk.js",
+    "index.html": "/the-poller/index.html",
+    "main.0eca8728.css.map": "/the-poller/static/css/main.0eca8728.css.map",
+    "main.7b760925.js.map": "/the-poller/static/js/main.7b760925.js.map",
+    "787.01b6395b.chunk.js.map": "/the-poller/static/js/787.01b6395b.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.0eca8728.css",
+    "static/js/main.7b760925.js"
+  ]
+}
