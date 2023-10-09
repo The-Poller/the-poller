@@ -116,10 +116,7 @@ const UserSetting: React.FC<{
               type={showToken ? 'text' : 'password'}
               placeholder="Enter Github Token"
               value={githubToken}
-              onChange={(e) => {
-                setGithubToken(e.target.value);
-                localStorage.setItem('githubToken', e.target.value);
-              }}
+              onChange={(e) => setGithubToken(e.target.value)}
               style={{ marginBottom: '10px', paddingRight: '40px' }}
             />
             <Button
@@ -140,10 +137,7 @@ const UserSetting: React.FC<{
             type="text"
             placeholder="Enter reviewer username"
             value={userName}
-            onChange={(e) => {
-              setUserName(e.target.value);
-              localStorage.setItem('userName', e.target.value);
-            }}
+            onChange={(e) => setUserName(e.target.value)}
             style={{ marginBottom: '10px' }}
           />
           <FormLabel>GitHub Organization</FormLabel>
@@ -151,10 +145,7 @@ const UserSetting: React.FC<{
             type="text"
             placeholder="Enter GitHub Organization"
             value={githubOrg}
-            onChange={(e) => {
-              setGithubOrg(e.target.value);
-              localStorage.setItem('githubOrg', e.target.value);
-            }}
+            onChange={(e) => setGithubOrg(e.target.value)}
             style={{ marginBottom: '10px' }}
           />
           <FormLabel className='required'>Fetch Pull Requests for User</FormLabel>
