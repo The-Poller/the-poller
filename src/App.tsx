@@ -27,15 +27,18 @@ const App: React.FC = () => {
   const [users, setUsers] = useState<string[]>([]);
   const [githubToken, setGithubToken] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
+  const [githubOrg, setGithubOrg] = useState<string>('');
 
   useEffect(() => {
     const storedUsers = JSON.parse(localStorage.getItem('githubUsers') || '[]');
     const storedGithubToken = localStorage.getItem('githubToken');
     const storedUserName = localStorage.getItem('userName');
+    const storedGithubOrg = localStorage.getItem('githubOrg');
 
     if (storedUsers && storedUsers.length) setUsers(storedUsers);
     if (storedGithubToken) setGithubToken(storedGithubToken);
     if (storedUserName) setUserName(storedUserName);
+    if (storedGithubOrg) setGithubOrg(storedGithubOrg);
   }, []);
 
   const resetState = () => {
@@ -49,8 +52,8 @@ const App: React.FC = () => {
   };
 
   const isSettingsEmpty = useMemo(() => {
-    return users.length === 0 || !githubToken || !userName;
-  }, [users, githubToken, userName]);
+    return users.length === 0 || !githubToken;
+  }, [users, githubToken]);
 
   if (isSettingsEmpty || isSettingsOpen) {
     return (
@@ -69,6 +72,8 @@ const App: React.FC = () => {
                 setGithubToken={setGithubToken}
                 userName={userName}
                 setUserName={setUserName}
+                githubOrg={githubOrg}
+                setGithubOrg={setGithubOrg}
                 onModalOpen={() => {
                   setIsSettingsOpen(true);
                 }}
@@ -105,12 +110,24 @@ const App: React.FC = () => {
 
     try {
       const PRs: TableData = {};
+      const query = [
+        'is:open',
+        'is:pull-request',
+        'draft:false',
+        'archived:false',
+      ];
+      if (githubOrg) {
+        query.push(`org:${githubOrg}`);
+      }
+      if (userName) {
+        query.push(`review-requested:${userName}`);
+      }
       for (const [idx, user] of Object.entries(users)) {
         const result = await request('GET /search/issues', {
           headers: {
             authorization: `token ${githubToken}`,
           },
-          q: `is:open is:pull-request org:jupiterone author:${user} review-requested:${userName} draft:false archived:false`
+          q: query.join(' ') + ` author:${user}`,
         });
         for (const item of result.data.items || []) {
           PRs[item.repository_url] ??= [];
@@ -153,6 +170,8 @@ const App: React.FC = () => {
               setGithubToken={setGithubToken}
               userName={userName}
               setUserName={setUserName}
+              githubOrg={githubOrg}
+              setGithubOrg={setGithubOrg}
               onModalOpen={() => {
                 setIsSettingsOpen(true);
               }}
@@ -229,10 +248,10 @@ const App: React.FC = () => {
           </div>
         </div>
         {Object.entries(data).sort(([repoNameA], [repoNameB]) => repoNameA > repoNameB ? 1 : -1).map(([repositoryUrl, tableData]) => (
-          <div id={repositoryUrl.slice(repositoryUrl.lastIndexOf('/') + 1)} key={repositoryUrl.slice(repositoryUrl.lastIndexOf('/') + 1)}>
+          <div id={repositoryUrl.slice(repositoryUrl.indexOf('/repos/') + 7)} key={repositoryUrl.slice(repositoryUrl.indexOf('/repos/') + 7)}>
             <h2>
-              <a style={{ textDecoration: 'none', color: 'inherit' }} href={`#${repositoryUrl.slice(repositoryUrl.lastIndexOf('/') + 1)}`}>
-                {repositoryUrl.slice(repositoryUrl.lastIndexOf('/') + 1)}
+              <a style={{ textDecoration: 'none', color: 'inherit' }} href={`#${repositoryUrl.slice(repositoryUrl.indexOf('/repos/') + 7)}`}>
+                {repositoryUrl.slice(repositoryUrl.indexOf('/repos/') + 7)}
               </a>
             </h2>
             <Table bordered>
