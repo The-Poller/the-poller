@@ -1,20 +1,14 @@
-import React, { useState, useEffect, } from 'react';
-import { Button, Modal, ListGroup, FormControl, FormLabel, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import React, { useEffect, useState, } from 'react';
+import { Button, FormControl, FormLabel, ListGroup, Modal, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { FaCog, FaEye, FaEyeSlash, FaPlus } from 'react-icons/fa';
 import './UserSetting.css';
 
 const UserSetting: React.FC<{
-  users: string[],
-  setUsers: React.Dispatch<React.SetStateAction<string[]>>,
-  githubToken: string,
-  setGithubToken: React.Dispatch<React.SetStateAction<string>>,
-  githubOrg: string,
-  setGithubOrg: React.Dispatch<React.SetStateAction<string>>,
-  userName: string,
-  setUserName: React.Dispatch<React.SetStateAction<string>>,
+  settings: { users: string[]; githubToken: string; userName: string; githubOrg: string; },
+  setSettings: React.Dispatch<React.SetStateAction<{ users: string[]; githubToken: string; userName: string; githubOrg: string; }>>,
   onModalOpen?: () => void;
   onModalClose?: (changesMade: boolean) => void;
-}> = ({ users, setUsers, githubToken, setGithubToken, userName, setUserName, githubOrg, setGithubOrg, onModalOpen, onModalClose }) => {
+}> = ({ settings, setSettings, onModalOpen, onModalClose }) => {
   const [newUser, setNewUser] = useState<string>('');
   const [show, setShow] = useState(false);
   const [showToken, setShowToken] = useState(false);
@@ -32,21 +26,18 @@ const UserSetting: React.FC<{
   }, [changesMade, show])
 
   const handleAddUser = () => {
-    if (newUser && !users.includes(newUser) && newUser !== userName) {
-      setUsers([...users, newUser]);
+    if (newUser && !settings.users.includes(newUser) && newUser !== settings.userName) {
+      setSettings(prevSettings => ({ ...prevSettings, users: [...settings.users, newUser] }));
       setNewUser('');
     }
   };
 
   const handleRemoveUser = (user: string) => {
-    setUsers(users.filter(u => u !== user));
+    setSettings(prevSettings => ({ ...prevSettings, users: settings.users.filter(u => u !== user) }));
   };
 
   const handleClose = async () => {
-    localStorage.setItem('githubUsers', JSON.stringify(users));
-    localStorage.setItem('githubToken', githubToken);
-    localStorage.setItem('userName', userName);
-    localStorage.setItem('githubOrg', githubOrg);
+    localStorage.setItem('githubSettings', JSON.stringify(settings));
     checkForChanges();
     setShow(false);
   }
@@ -55,34 +46,23 @@ const UserSetting: React.FC<{
     if (onModalOpen) onModalOpen();
     setChangesMade(false);
 
-    const storedUsers = localStorage.getItem('githubUsers');
-    const storedGithubToken = localStorage.getItem('githubToken');
-    const storedUserName = localStorage.getItem('userName');
-    const storedGithubOrg = localStorage.getItem('githubOrg');
-
-    if (storedUsers) {
-      setPrevStoredUsers(JSON.parse(storedUsers));
-    }
-    if (storedGithubToken) {
-      setPrevStoredGithubToken(storedGithubToken);
-    }
-    if (storedUserName) {
-      setPrevStoredUserName(storedUserName);
-    }
-    if (storedGithubOrg) {
-      setPrevStoredGithubOrg(storedGithubOrg);
-    }
+    const storedSettings = JSON.parse(localStorage.getItem('githubSettings') || '{}');
+    setPrevStoredUsers(storedSettings.users || []);
+    setPrevStoredGithubToken(storedSettings.githubToken || '');
+    setPrevStoredUserName(storedSettings.userName || '');
+    setPrevStoredGithubOrg(storedSettings.githubOrg || '');
     setShow(true);
   };
 
   const checkForChanges = () => {
-    if (JSON.stringify(users) !== JSON.stringify(prevStoredUsers)
-      || githubToken !== prevStoredGithubToken
-      || userName !== prevStoredUserName
-      || githubOrg !== prevStoredGithubOrg) {
-      setChangesMade(true)
+    if (JSON.stringify(settings.users) !== JSON.stringify(prevStoredUsers)
+      || settings.githubToken !== prevStoredGithubToken
+      || settings.userName !== prevStoredUserName
+      || settings.githubOrg !== prevStoredGithubOrg) {
+      setChangesMade(true);
     }
   };
+
 
   return (
     <>
@@ -115,8 +95,8 @@ const UserSetting: React.FC<{
             <FormControl
               type={showToken ? 'text' : 'password'}
               placeholder="Enter Github Token"
-              value={githubToken}
-              onChange={(e) => setGithubToken(e.target.value)}
+              value={settings.githubToken}
+              onChange={(e) => setSettings(prevSettings => ({ ...prevSettings, githubToken: e.target.value }))}
               style={{ marginBottom: '10px', paddingRight: '40px' }}
             />
             <Button
@@ -136,16 +116,16 @@ const UserSetting: React.FC<{
           <FormControl
             type="text"
             placeholder="Enter reviewer username"
-            value={userName}
-            onChange={(e) => setUserName(e.target.value)}
+            value={settings.userName}
+            onChange={(e) => setSettings(prevSettings => ({ ...prevSettings, userName: e.target.value }))}
             style={{ marginBottom: '10px' }}
           />
           <FormLabel>GitHub Organization</FormLabel>
           <FormControl
             type="text"
             placeholder="Enter GitHub Organization"
-            value={githubOrg}
-            onChange={(e) => setGithubOrg(e.target.value)}
+            value={settings.githubOrg}
+            onChange={(e) => setSettings(prevSettings => ({ ...prevSettings, githubOrg: e.target.value }))}
             style={{ marginBottom: '10px' }}
           />
           <FormLabel className='required'>Fetch Pull Requests for User</FormLabel>
@@ -163,7 +143,7 @@ const UserSetting: React.FC<{
           </div>
           <FormLabel style={{ display: 'block', marginTop: '10px' }}>Current Users</FormLabel>
           <ListGroup>
-            {users.map(user => (
+            {settings.users.map(user => (
               <ListGroup.Item key={user} style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center'
               }}>

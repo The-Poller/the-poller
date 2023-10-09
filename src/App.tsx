@@ -1,17 +1,24 @@
-import './App.css';
-import { Endpoints } from '@octokit/types';
-import { useState, useEffect, useMemo } from 'react';
 import { request } from '@octokit/request';
-import Moment from 'react-moment';
+import { Endpoints } from '@octokit/types';
 import 'bootstrap/dist/css/bootstrap.css';
-import { ProgressBar, Container, Navbar, Table, Button, Spinner } from 'react-bootstrap';
-import { FaCodePullRequest } from 'react-icons/fa6';
+import { useEffect, useMemo, useState } from 'react';
+import { Button, Container, Navbar, ProgressBar, Spinner, Table } from 'react-bootstrap';
 import { FaCog, FaSmile } from 'react-icons/fa';
+import { FaCodePullRequest } from 'react-icons/fa6';
+import Moment from 'react-moment';
+import './App.css';
 import UserSetting from './UserSetting';
 
 
 type SearchIssuesResponse = Endpoints["GET /search/issues"]["response"]["data"]["items"][0];
 type TableData = { [repoUrl: string]: SearchIssuesResponse[] };
+
+type SettingsType = {
+  users: string[];
+  githubToken: string;
+  userName: string;
+  githubOrg: string;
+};
 
 const App: React.FC = () => {
   const [data, setData] = useState<TableData>({});
@@ -24,10 +31,12 @@ const App: React.FC = () => {
   const [noPRsToReview, setNoPRsToReview] = useState(false);
 
 
-  const [users, setUsers] = useState<string[]>([]);
-  const [githubToken, setGithubToken] = useState<string>('');
-  const [userName, setUserName] = useState<string>('');
-  const [githubOrg, setGithubOrg] = useState<string>('');
+  const [settings, setSettings] = useState<SettingsType>({
+    users: [],
+    githubToken: '',
+    userName: '',
+    githubOrg: ''
+  });
 
   useEffect(() => {
     const storedUsers = JSON.parse(localStorage.getItem('githubUsers') || '[]');
@@ -35,10 +44,12 @@ const App: React.FC = () => {
     const storedUserName = localStorage.getItem('userName');
     const storedGithubOrg = localStorage.getItem('githubOrg');
 
-    if (storedUsers && storedUsers.length) setUsers(storedUsers);
-    if (storedGithubToken) setGithubToken(storedGithubToken);
-    if (storedUserName) setUserName(storedUserName);
-    if (storedGithubOrg) setGithubOrg(storedGithubOrg);
+    setSettings({
+      users: storedUsers || [],
+      githubToken: storedGithubToken || '',
+      userName: storedUserName || '',
+      githubOrg: storedGithubOrg || ''
+    });
   }, []);
 
   const resetState = () => {
@@ -52,8 +63,8 @@ const App: React.FC = () => {
   };
 
   const isSettingsEmpty = useMemo(() => {
-    return users.length === 0 || !githubToken;
-  }, [users, githubToken]);
+    return settings.users.length === 0 || !settings.githubToken;
+  }, [settings.users, settings.githubToken]);
 
   if (isSettingsEmpty || isSettingsOpen) {
     return (
@@ -66,14 +77,8 @@ const App: React.FC = () => {
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Navbar.Collapse id="basic-navbar-nav" className="d-flex align-items-center justify-content-end">
               <UserSetting
-                users={users}
-                setUsers={setUsers}
-                githubToken={githubToken}
-                setGithubToken={setGithubToken}
-                userName={userName}
-                setUserName={setUserName}
-                githubOrg={githubOrg}
-                setGithubOrg={setGithubOrg}
+                settings={settings}
+                setSettings={setSettings}
                 onModalOpen={() => {
                   setIsSettingsOpen(true);
                 }}
@@ -116,16 +121,16 @@ const App: React.FC = () => {
         'draft:false',
         'archived:false',
       ];
-      if (githubOrg) {
-        query.push(`org:${githubOrg}`);
+      if (settings.githubOrg) {
+        query.push(`org:${settings.githubOrg}`);
       }
-      if (userName) {
-        query.push(`review-requested:${userName}`);
+      if (settings.userName) {
+        query.push(`review-requested:${settings.userName}`);
       }
-      for (const [idx, user] of Object.entries(users)) {
+      for (const [idx, user] of Object.entries(settings.users)) {
         const result = await request('GET /search/issues', {
           headers: {
-            authorization: `token ${githubToken}`,
+            authorization: `token ${settings.githubToken}`,
           },
           q: query.join(' ') + ` author:${user}`,
         });
@@ -164,14 +169,8 @@ const App: React.FC = () => {
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav" className="d-flex align-items-center justify-content-end">
             <UserSetting
-              users={users}
-              setUsers={setUsers}
-              githubToken={githubToken}
-              setGithubToken={setGithubToken}
-              userName={userName}
-              setUserName={setUserName}
-              githubOrg={githubOrg}
-              setGithubOrg={setGithubOrg}
+              settings={settings}
+              setSettings={setSettings}
               onModalOpen={() => {
                 setIsSettingsOpen(true);
               }}
@@ -243,7 +242,7 @@ const App: React.FC = () => {
             </Button>
           )}
           <div style={{ width: "50vw", marginTop: '10px', textAlign: 'center' }}>
-            <ProgressBar variant={loadFailed ? 'danger' : (progress !== users.length) ? '' : 'success'} animated={!loadFailed && progress !== users.length} now={loadFailed ? 100 : (progress / users.length) * 100} label={loadFailed ? 'Failed to load all data.' : (progress === users.length) ? "All PRs loaded" : `${users[progress - 1]} ${progress}/${users.length}`} />
+            <ProgressBar variant={loadFailed ? 'danger' : (progress !== settings.users.length) ? '' : 'success'} animated={!loadFailed && progress !== settings.users.length} now={loadFailed ? 100 : (progress / settings.users.length) * 100} label={loadFailed ? 'Failed to load all data.' : (progress === settings.users.length) ? "All PRs loaded" : `${settings.users[progress - 1]} ${progress}/${settings.users.length}`} />
             <span hidden={!loadedAt}>Data loaded <Moment fromNow interval={1000}>{loadedAt}</Moment></span>
           </div>
         </div>
