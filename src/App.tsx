@@ -39,17 +39,11 @@ const App: React.FC = () => {
   });
 
   useEffect(() => {
-    const storedUsers = JSON.parse(localStorage.getItem('githubUsers') || '[]');
-    const storedGithubToken = localStorage.getItem('githubToken');
-    const storedUserName = localStorage.getItem('userName');
-    const storedGithubOrg = localStorage.getItem('githubOrg');
-
-    setSettings({
-      users: storedUsers || [],
-      githubToken: storedGithubToken || '',
-      userName: storedUserName || '',
-      githubOrg: storedGithubOrg || ''
-    });
+    const storedSettings = JSON.parse(localStorage.getItem('settings') || '{}');
+    setSettings(prev => ({
+      ...prev,
+      ...storedSettings
+    }));
   }, []);
 
   const resetState = () => {
