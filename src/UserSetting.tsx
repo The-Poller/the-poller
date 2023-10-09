@@ -37,7 +37,7 @@ const UserSetting: React.FC<{
   };
 
   const handleClose = async () => {
-    localStorage.setItem('githubSettings', JSON.stringify(settings));
+    localStorage.setItem('settings', JSON.stringify(settings));
     checkForChanges();
     setShow(false);
   }
@@ -46,7 +46,7 @@ const UserSetting: React.FC<{
     if (onModalOpen) onModalOpen();
     setChangesMade(false);
 
-    const storedSettings = JSON.parse(localStorage.getItem('githubSettings') || '{}');
+    const storedSettings = JSON.parse(localStorage.getItem('settings') || '{}');
     setPrevStoredUsers(storedSettings.users || []);
     setPrevStoredGithubToken(storedSettings.githubToken || '');
     setPrevStoredUserName(storedSettings.userName || '');
