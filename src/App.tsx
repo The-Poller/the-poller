@@ -50,7 +50,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const storedSettings = JSON.parse(localStorage.getItem('settings') || '{}');
-    setSettings((prev) => ({
+    setSettings(prev => ({
       ...prev,
       ...storedSettings,
     }));
